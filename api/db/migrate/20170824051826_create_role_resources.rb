@@ -6,5 +6,6 @@ class CreateRoleResources < ActiveRecord::Migration[5.1]
 
       t.timestamps
     end
+    add_index(:role_resources, [ :role_id, :resource_id ])
   end
 end

@@ -10,5 +10,11 @@ class CreateResources < ActiveRecord::Migration[5.1]
 
       t.timestamps
     end
+    add_index(:resources, :name)
+    add_index(:resources, :parent_id)
+    add_index(:resources, :api_url)
+    add_index(:resources, :web_url)
+    add_index(:resources, :key)
+    add_index(:resources, :icon)
   end
 end

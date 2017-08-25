@@ -9,5 +9,8 @@ class CreateUsers < ActiveRecord::Migration[5.1]
 
       t.timestamps
     end
+    add_index(:users, :name)
+    add_index(:users, :mobile)
+    add_index(:users, :username)
   end
 end

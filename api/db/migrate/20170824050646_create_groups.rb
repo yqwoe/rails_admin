@@ -6,5 +6,7 @@ class CreateGroups < ActiveRecord::Migration[5.1]
 
       t.timestamps
     end
+    add_index(:groups, :name)
+    add_index(:groups, [ :name, :type_id])
   end
 end

@@ -1,0 +1,35 @@
+{
+  "name": "rails_admin",
+  "version": "0.1.0",
+  "description": "rails_admin",
+  "private": true,
+  "directories": {
+    "test": "test"
+  },
+  "devDependencies": {
+    "classnames": "^2.2.5",
+    "cz-conventional-changelog": "^2.0.0",
+    "redux-persist": "^4.8.0"
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@e.coding.net:minsheng/eagle.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "babel-eslint": "^7.2.3",
+    "coffee-script": "^1.12.6",
+    "commitizen": "^2.9.6",
+    "eslint": "^4.2.0",
+    "increase-memory-limit": "^1.0.1",
+    "jslint": "^0.10.3",
+    "new-relic-react": "^1.0.0",
+    "standard-version": "^4.2.0"
+  }
+}

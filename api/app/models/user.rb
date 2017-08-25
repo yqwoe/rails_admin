@@ -1,12 +1,11 @@
 class User < ApplicationRecord
+  rolify
   include Searchable
   include BCrypt
   has_secure_password
   before_create :generate_authentication_token
-  has_many :group_users
-  has_many :groups ,through: :group_users
-  has_many :user_roles
-  has_many :roles,through: :user_roles
+  has_many :groups , :join_table => :group_users
+  has_many :roles, :join_table => :user_roles
 
 
 
