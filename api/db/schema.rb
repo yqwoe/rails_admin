@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170824051826) do
+ActiveRecord::Schema.define(version: 20170914021805) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -26,27 +26,31 @@ ActiveRecord::Schema.define(version: 20170824051826) do
   create_table "groups", force: :cascade do |t|
     t.string "name"
     t.integer "type_id"
+    t.integer "parent_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["name", "type_id"], name: "index_groups_on_name_and_type_id"
+    t.index ["name", "type_id", "parent_id"], name: "index_groups_on_name_and_type_id_and_parent_id"
     t.index ["name"], name: "index_groups_on_name"
+    t.index ["parent_id"], name: "index_groups_on_parent_id"
+    t.index ["type_id"], name: "index_groups_on_type_id"
   end
 
   create_table "resources", force: :cascade do |t|
     t.string "name"
-    t.integer "parent_id"
-    t.string "api_url"
-    t.string "web_url"
+    t.string "url"
     t.string "key"
     t.string "icon"
+    t.integer "parent_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["api_url"], name: "index_resources_on_api_url"
-    t.index ["icon"], name: "index_resources_on_icon"
+    t.integer "menu_id"
+    t.string "ancestry"
+    t.index ["ancestry"], name: "index_resources_on_ancestry"
     t.index ["key"], name: "index_resources_on_key"
+    t.index ["menu_id"], name: "index_resources_on_menu_id"
     t.index ["name"], name: "index_resources_on_name"
     t.index ["parent_id"], name: "index_resources_on_parent_id"
-    t.index ["web_url"], name: "index_resources_on_web_url"
+    t.index ["url"], name: "index_resources_on_url"
   end
 
   create_table "role_resources", force: :cascade do |t|
@@ -54,12 +58,16 @@ ActiveRecord::Schema.define(version: 20170824051826) do
     t.integer "resource_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "actions", array: true
+    t.index ["actions"], name: "index_role_resources_on_actions"
     t.index ["role_id", "resource_id"], name: "index_role_resources_on_role_id_and_resource_id"
   end
 
   create_table "roles", force: :cascade do |t|
     t.string "name"
     t.string "title"
+    t.integer "resource_id"
+    t.string "resource_type"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["name"], name: "index_roles_on_name"

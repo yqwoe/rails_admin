@@ -1,6 +1,8 @@
 class Role < ApplicationRecord
-  has_and_belongs_to_many :users, :join_table => :users_roles
-  has_and_belongs_to_many :resources, :join_table => :role_resources
+  has_many :user_roles
+  has_many :users,through: :user_roles
+  has_many :role_resources
+  has_many :resources,through: :role_resources
   # belongs_to :resource,
   #            :polymorphic => true,
   #            :optional => true
@@ -9,5 +11,5 @@ class Role < ApplicationRecord
   #           :inclusion => { :in => Rolify.resource_types },
   #           :allow_nil => true
 
-  scopify
+  # scopify
 end

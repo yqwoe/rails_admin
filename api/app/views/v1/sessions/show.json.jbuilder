@@ -1,1 +1,1 @@
-json.extract! @user,:id,:name,:username,:mobile
+json.user @user,:id,:name,:username,:mobile

@@ -1,11 +1,13 @@
 class User < ApplicationRecord
-  rolify
+  rolify  join_table:'user_roles'
   include Searchable
   include BCrypt
   has_secure_password
   before_create :generate_authentication_token
-  has_many :groups , :join_table => :group_users
-  has_many :roles, :join_table => :user_roles
+  has_many :group_users
+  has_many :groups ,through: :group_users
+  has_many :users_roles,:class_name => 'UserRole'
+  has_many :roles,through: :users_roles
 
 
 
@@ -24,4 +26,7 @@ class User < ApplicationRecord
   def password
     @password ||= Password.new(password_digest)
   end
+
+
+
 end

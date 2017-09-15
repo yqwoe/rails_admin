@@ -1,76 +1,54 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Router } from 'dva/router'
+import { Switch, Route, Redirect, routerRedux } from 'dva/router'
+import dynamic from 'dva/dynamic'
 import App from 'routes/app'
 
-const registerModel = (app, model) => {
-  if (!(app._models.filter(m => m.namespace === model.namespace).length === 1)) {
-    app.model(model)
-  }
-}
+const { ConnectedRouter } = routerRedux
 
 const Routers = function ({ history, app }) {
+  const error = dynamic({
+    app,
+    component: () => import('./routes/error'),
+  })
   const routes = [
     {
-      path: '/',
-      component: App,
-      getIndexRoute (nextState, cb) {
-        require.ensure([], (require) => {
-          registerModel(app, require('models/dashboard'))
-          cb(null, { component: require('routes/dashboard/') })
-        }, 'dashboard')
-      },
-      childRoutes: [
-        {
-          path: 'dashboard',
-          getComponent (nextState, cb) {
-            require.ensure([], (require) => {
-              registerModel(app, require('models/dashboard'))
-              cb(null, require('routes/dashboard/'))
-            }, 'dashboard')
-          },
-        }, {
-          path: 'login',
-          getComponent (nextState, cb) {
-            require.ensure([], (require) => {
-              registerModel(app, require('models/login'))
-              cb(null, require('routes/login/'))
-            }, 'login')
-          },
-        }, {
-          path: 'chart/lineChart',
-          getComponent (nextState, cb) {
-            require.ensure([], (require) => {
-              cb(null, require('routes/chart/lineChart/'))
-            }, 'chart-lineChart')
-          },
-        }, {
-          path: 'chart/barChart',
-          getComponent (nextState, cb) {
-            require.ensure([], (require) => {
-              cb(null, require('routes/chart/barChart/'))
-            }, 'chart-barChart')
-          },
-        }, {
-          path: 'chart/areaChart',
-          getComponent (nextState, cb) {
-            require.ensure([], (require) => {
-              cb(null, require('routes/chart/areaChart/'))
-            }, 'chart-areaChart')
-          },
-        }, {
-          path: '*',
-          getComponent (nextState, cb) {
-            require.ensure([], (require) => {
-              cb(null, require('routes/error/'))
-            }, 'error')
-          },
-        },
-      ],
-    },
+      path: '/dashboard',
+      models: () => [import('./models/dashboard')],
+      component: () => import('./routes/dashboard/')
+    }, {
+      path: '/admin/users',
+      models: () => [import('./models/admin/users')],
+      component: () => import('./routes/admin/users/UserIndex')
+    }, {
+      path: '/sign_in',
+      models: () => [import('./models/sessions')],
+      component: () => import('./routes/sessions/')
+    }
   ]
 
-  return <Router history={history} routes={routes} />
+  return (
+    <ConnectedRouter history={history}>
+      <App>
+        <Switch>
+          <Route exact path="/" render={() => (<Redirect to="/dashboard" />)} />
+          {
+            routes.map(({ path, ...dynamics }, key) => (
+              <Route key={key}
+                exact
+                path={path}
+                component={dynamic({
+                  app,
+                  ...dynamics,
+                })}
+              />
+            ))
+          }
+          <Route component={error} />
+        </Switch>
+      </App>
+    </ConnectedRouter>
+  )
 }
 
 Routers.propTypes = {

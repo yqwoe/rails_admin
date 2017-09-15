@@ -7,6 +7,7 @@ import { connect } from 'dva'
 import { Layout, Loader } from 'components'
 import { classnames, config } from 'utils'
 import { Helmet } from 'react-helmet'
+import { withRouter } from 'dva/router'
 import '../themes/index.less'
 import './app.less'
 import Error from './error'
@@ -17,25 +18,43 @@ const { Header, Bread, Footer, Sider, styles } = Layout
 let lastHref
 
 const App = ({ children, dispatch, app, loading, location }) => {
-  const { user, siderFold, darkTheme, isNavbar, menuPopoverVisible, navOpenKeys, menu, permissions } = app
+  const { user, siderFold, darkTheme, isNavbar, menuPopoverVisible, navOpenKeys, menu, permissions,bread } = app
   let { pathname } = location
-  pathname = pathname.startsWith('/') ? pathname : `/${pathname}`
+  // pathname = pathname.startsWith('/') ? pathname : `/${pathname}`
   const { iconFontJS, iconFontCSS, logo } = config
-  const current = menu.filter(item => pathToRegexp(item.route || '').exec(pathname))
-  const hasPermission = current.length ? permissions.visit.includes(current[0].id) : false
-  const href = window.location.href
-
-  if (lastHref !== href) {
-    NProgress.start()
-    if (!loading.global) {
-      NProgress.done()
-      lastHref = href
+  const current =()=>{
+    if(/\/new$/.test(pathname)){
+      return {action:'create',path:pathname.replace(/\/new$/,'')}
+    }else if(/\/edit$/.test(pathname)){
+      return {action:'update',path:pathname.replace(/\/\d\/*\/edit$/,'')}
+    }else{
+      return {action:'read',path:pathname.replace(/\/\d$/,'')}
     }
   }
+  const hasPermission = () => {
+      let action = current()['action']
+      let path = current()['path']
+      let can_permissions = permissions['can'][action]
+    if(can_permissions){
+        return can_permissions.includes(path)
+    }else{
+      return false
+    }
+  }
+  // const href = window.location.href
+  //
+  // if (lastHref !== href) {
+  //   NProgress.start()
+  //   if (!loading.global) {
+  //     NProgress.done()
+  //     lastHref = href
+  //   }
+  // }
 
   const headerProps = {
     menu,
     user,
+    location,
     siderFold,
     isNavbar,
     menuPopoverVisible,
@@ -56,6 +75,7 @@ const App = ({ children, dispatch, app, loading, location }) => {
 
   const siderProps = {
     menu,
+    location,
     siderFold,
     darkTheme,
     navOpenKeys,
@@ -69,18 +89,20 @@ const App = ({ children, dispatch, app, loading, location }) => {
   }
 
   const breadProps = {
-    menu,
+    menu: bread,
+    location,
   }
-  if (openPages && openPages.includes(pathname)) {
+  if (location.pathname === '/sign_in') {
     return (<div>
-      <Loader spinning={loading.effects['app/query']} />
+      <Loader fullScreen spinning={loading.effects['app/query']} />
       {children}
     </div>)
   }
   return (
     <div>
+      <Loader fullScreen spinning={loading.effects['app/query']} />
       <Helmet>
-        <title>RAILS ADMIN</title>
+        <title>ANTD ADMIN</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <link rel="icon" href={logo} type="image/x-icon" />
         {iconFontJS && <script src={iconFontJS} />}
@@ -88,14 +110,14 @@ const App = ({ children, dispatch, app, loading, location }) => {
       </Helmet>
       <div className={classnames(styles.layout, { [styles.fold]: isNavbar ? false : siderFold }, { [styles.withnavbar]: isNavbar })}>
         {!isNavbar ? <aside className={classnames(styles.sider, { [styles.light]: !darkTheme })}>
-          <Sider {...siderProps} />
+          {siderProps.menu.length === 0 ? null : <Sider {...siderProps} />}
         </aside> : ''}
         <div className={styles.main}>
           <Header {...headerProps} />
           <Bread {...breadProps} />
           <div className={styles.container}>
             <div className={styles.content}>
-              {hasPermission ? children : <Error />}
+              {hasPermission() ? children : <Error/>}
             </div>
           </div>
           <Footer />
@@ -113,4 +135,4 @@ App.propTypes = {
   loading: PropTypes.object,
 }
 
-export default connect(({ app, loading }) => ({ app, loading }))(App)
+export default withRouter(connect(({ app, loading }) => ({ app, loading }))(App))

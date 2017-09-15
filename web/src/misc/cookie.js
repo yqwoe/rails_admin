@@ -2,7 +2,7 @@
 import Cookie from 'js-cookie'
 
 export const set = (key, value, expire) => {
-  Cookie.set(key, value, { path: '/', expires: 1 })
+  Cookie.set(key, value, { path: '/', expires: 1})
 }
 
 export const remove = (key) => {

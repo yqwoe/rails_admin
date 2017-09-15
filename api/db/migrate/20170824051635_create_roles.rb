@@ -3,6 +3,8 @@ class CreateRoles < ActiveRecord::Migration[5.1]
     create_table :roles do |t|
       t.string :name
       t.string :title
+      t.integer :resource_id
+      t.string :resource_type
 
       t.timestamps
     end

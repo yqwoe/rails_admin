@@ -2,7 +2,6 @@ import { parse } from 'qs'
 import modelExtend from 'dva-model-extend'
 import { query } from 'services/dashboard'
 import { model } from 'models/common'
-import * as weatherService from 'services/weather'
 
 export default modelExtend(model, {
   namespace: 'dashboard',
@@ -31,8 +30,8 @@ export default modelExtend(model, {
     setup ({ dispatch, history }) {
       history.listen(({ pathname }) => {
         if (pathname === '/dashboard' || pathname === '/') {
-          dispatch({ type: 'query' })
-          dispatch({ type: 'queryWeather' })
+          //dispatch({ type: 'query' })
+          //dispatch({ type: 'queryWeather' })
         }
       })
     },

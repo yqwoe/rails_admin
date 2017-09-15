@@ -1,7 +1,5 @@
 class V1::SessionsController < ApplicationController
-  before_action :set_session ,only: [:show]
-  def show
-  end
+  before_action :set_session ,only: [:destroy]
 
   def create
     @user = User.find_by_username(session_params[:username])
@@ -11,7 +9,15 @@ class V1::SessionsController < ApplicationController
       api_render({:message => '用户密码错误',:status => 401})
     else
       @user.reset_auth_token!
-      api_success({:message => '登录成功',:status => 200,:user => @user.reload.as_json(:except => [:password_digest])})
+      success({:message => '登录成功',:status => 200,:user => @user.reload.as_json(:except => [:password_digest])})
+    end
+  end
+
+  def destroy
+    if @user.reset_auth_token!
+      api_render({:message =>'注销成功',:status => 200})
+    else
+      error({:message =>'注销失败',:status => 500})
     end
   end
 

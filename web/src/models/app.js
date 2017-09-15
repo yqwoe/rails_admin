@@ -6,23 +6,18 @@ import { parse } from 'qs'
 import config from 'config'
 import { EnumRoleType } from 'enums'
 import { query, logout } from 'services/app'
-import * as menusService from 'services/menus'
+import * as menusService from 'services/admin/resources'
+import queryString from 'query-string'
 
 const { prefix } = config
-
-
-import Cookie from '../misc/cookie'
-const isLogin=()=>{
-  return Cookie.get('user_session')
-}
 
 export default {
   namespace: 'app',
   state: {
     user: {},
-    login: !!isLogin(),
     permissions: {
-      visit: [],
+      can:{},
+      cannot:{}
     },
     menu: [
       {
@@ -37,11 +32,26 @@ export default {
     darkTheme: window.localStorage.getItem(`${prefix}darkTheme`) === 'true',
     isNavbar: document.body.clientWidth < 769,
     navOpenKeys: JSON.parse(window.localStorage.getItem(`${prefix}navOpenKeys`)) || [],
+    locationPathname: '',
+    locationQuery: {},
+    bread:[]
   },
   subscriptions: {
 
-    setup ({ dispatch ,history }) {
-        dispatch({ type: 'query' })
+    setupHistory ({ dispatch, history }) {
+      history.listen((location) => {
+        dispatch({
+          type: 'updateState',
+          payload: {
+            locationPathname: location.pathname,
+            locationQuery: queryString.parse(location.search),
+          },
+        })
+      })
+    },
+
+    setup ({ dispatch }) {
+      dispatch({ type: 'query' })
       let tid
       window.onresize = () => {
         clearTimeout(tid)
@@ -55,48 +65,41 @@ export default {
   effects: {
 
     * query ({
-      payload,
-    }, { call, put }) {
+               payload,
+             }, { call, put, select }) {
       const { success, user } = yield call(query, payload)
+      const { locationPathname } = yield select(_ => _.app)
+      console.log(locationPathname)
       if (success && user) {
-        const { list } = yield call(menusService.query)
-        const { permissions } = user
-        let menu = list
-        if (permissions.role === EnumRoleType.ADMIN || permissions.role === EnumRoleType.DEVELOPER) {
-          permissions.visit = list.map(item => item.id)
-        } else {
-          menu = list.filter((item) => {
-            const cases = [
-              permissions.visit.includes(item.id),
-              item.mpid ? permissions.visit.includes(item.mpid) || item.mpid === '-1' : true,
-              item.bpid ? permissions.visit.includes(item.bpid) : true,
-            ]
-            return cases.every(_ => _)
-          })
-        }
+        const { tree,data,permissions } = yield call(menusService.query)
+
         yield put({
           type: 'updateState',
           payload: {
             user,
-            permissions,
-            menu
+            menu: tree,
+            bread: data,
+            permissions
           },
         })
-        if (location.pathname === '/login' ) {
-          yield put(routerRedux.push('/dashboard'))
+        if (location.pathname === '/sign_in') {
+          yield put(routerRedux.push({
+            pathname: '/dashboard',
+          }))
         }
-      } else if (config.openPages && location.pathname.indexOf('/login') < 0) {
-        Cookie.remove("_rails_admin_session")
-        Cookie.remove("_rails_admin_id")
-        let from = location.pathname
-        yield put(routerRedux.push(`/login?from=${from}`))
-        // window.location = `${location.origin}/login?from=${from}`
+      } else if (config.openPages && config.openPages.indexOf(locationPathname) < 0) {
+        yield put(routerRedux.push({
+          pathname: '/sign_in',
+          search: queryString.stringify({
+            from: locationPathname,
+          }),
+        }))
       }
     },
 
     * logout ({
-      payload,
-    }, { call, put }) {
+                payload,
+              }, { call, put }) {
       const data = yield call(logout, parse(payload))
       if (data.success) {
         yield put({ type: 'query' })

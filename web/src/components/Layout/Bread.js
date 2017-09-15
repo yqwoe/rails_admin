@@ -7,12 +7,12 @@ import pathToRegexp from 'path-to-regexp'
 import { queryArray } from 'utils'
 import styles from './Bread.less'
 
-const Bread = ({ menu }) => {
+const Bread = ({ menu,location }) => {
   // 匹配当前路由
   let pathArray = []
   let current
   for (let index in menu) {
-    if (menu[index].route && pathToRegexp(menu[index].route).exec(location.pathname)) {
+    if (menu[index].url && menu[index].url === location.pathname) {
       current = menu[index]
       break
     }
@@ -20,8 +20,8 @@ const Bread = ({ menu }) => {
 
   const getPathArray = (item) => {
     pathArray.unshift(item)
-    if (item.bpid) {
-      getPathArray(queryArray(menu, item.bpid, 'id'))
+    if (item.parent_id) {
+      getPathArray(queryArray(menu, item.parent_id, 'id'))
     }
   }
 
@@ -49,7 +49,7 @@ const Bread = ({ menu }) => {
     return (
       <Breadcrumb.Item key={key}>
         {((pathArray.length - 1) !== key)
-          ? <Link to={item.route}>
+          ? <Link to={item.url || '#'}>
             {content}
           </Link>
           : content}

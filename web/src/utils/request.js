@@ -5,7 +5,7 @@ import jsonp from 'jsonp'
 import lodash from 'lodash'
 import pathToRegexp from 'path-to-regexp'
 import { message } from 'antd'
-import { YQL, CORS } from './config'
+import { YQL, CORS,authorizationToken } from './config'
 
 const fetch = (options) => {
   let {
@@ -16,10 +16,9 @@ const fetch = (options) => {
   } = options
 
   const cloneData = lodash.cloneDeep(data)
-
   try {
     let domin = ''
-    if (url.match(/[a-zA-z]+:\/\/[^/]*/)) {
+    if (url && url.match(/[a-zA-z]+:\/\/[^/]*/)) {
       domin = url.match(/[a-zA-z]+:\/\/[^/]*/)[0]
       url = url.slice(domin.length)
     }
@@ -51,8 +50,9 @@ const fetch = (options) => {
   } else if (fetchType === 'YQL') {
     url = `http://query.yahooapis.com/v1/public/yql?q=select * from json where url='${options.url}?${encodeURIComponent(qs.stringify(options.data))}'&format=json`
     data = null
+  }else{
+    axios.defaults.headers = authorizationToken()
   }
-console.log(url,method.toLowerCase())
   switch (method.toLowerCase()) {
     case 'get':
       return axios.get(url, {
@@ -104,6 +104,8 @@ export default function request (options) {
     }
   }).catch((error) => {
     const { response } = error
+
+    console.log(response)
     let msg
     let statusCode
     if (response && response instanceof Object) {

@@ -1,0 +1,1 @@
+json.extract! resource,:id,:name,:parent,:childs,:web_url,:key,:icon

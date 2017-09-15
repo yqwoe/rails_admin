@@ -8,22 +8,23 @@ import pathToRegexp from 'path-to-regexp'
 
 const Menus = ({ siderFold, darkTheme, handleClickNavMenu, navOpenKeys, changeOpenKeys, menu }) => {
   // 生成树状
-  const menuTree = arrayToTree(menu.filter(_ => _.mpid !== '-1'), 'id', 'mpid')
   const levelMap = {}
 
   // 递归生成菜单
   const getMenus = (menuTreeN, siderFoldN) => {
+
     return menuTreeN.map((item) => {
-      if (item.children) {
-        if (item.mpid) {
-          levelMap[item.id] = item.mpid
-        }
+
+      if (item.parent_id) {
+        levelMap[item.id] = item.ancestry
+      }
+      if (item.children && item.children.length > 0) {
         return (
           <Menu.SubMenu
             key={item.id}
             title={<span>
               {item.icon && <Icon type={item.icon} />}
-              {(!siderFoldN || !menuTree.includes(item)) && item.name}
+              {(!siderFoldN || !menu.includes(item)) && item.name}
             </span>}
           >
             {getMenus(item.children, siderFoldN)}
@@ -32,33 +33,18 @@ const Menus = ({ siderFold, darkTheme, handleClickNavMenu, navOpenKeys, changeOp
       }
       return (
         <Menu.Item key={item.id}>
-          <Link to={item.route}>
+          <Link to={item.url || '#'}>
             {item.icon && <Icon type={item.icon} />}
-            {(!siderFoldN || !menuTree.includes(item)) && item.name}
+            {(!siderFoldN || !menu.includes(item)) && item.name}
           </Link>
         </Menu.Item>
       )
     })
   }
-  const menuItems = getMenus(menuTree, siderFold)
+  const menuItems = getMenus(menu, siderFold)
 
   // 保持选中
-  const getAncestorKeys = (key) => {
-    let map = {}
-    const getParent = (index) => {
-      const result = [String(levelMap[index])]
-      if (levelMap[result[0]]) {
-        result.unshift(getParent(result[0])[0])
-      }
-      return result
-    }
-    for (let index in levelMap) {
-      if ({}.hasOwnProperty.call(levelMap, index)) {
-        map[index] = getParent(index)
-      }
-    }
-    return map[key] || []
-  }
+  const getAncestorKeys = (key) => (levelMap[key] && levelMap[key].split('/') || [])
 
   const onOpenChange = (openKeys) => {
     const latestOpenKey = openKeys.find(key => !navOpenKeys.includes(key))
@@ -83,7 +69,7 @@ const Menus = ({ siderFold, darkTheme, handleClickNavMenu, navOpenKeys, changeOp
   let currentMenu
   let defaultSelectedKeys
   for (let item of menu) {
-    if (item.route && pathToRegexp(item.route).exec(location.pathname)) {
+    if (item.url && pathToRegexp(item.url).exec(location.pathname)) {
       currentMenu = item
       break
     }
@@ -100,7 +86,7 @@ const Menus = ({ siderFold, darkTheme, handleClickNavMenu, navOpenKeys, changeOp
     return result
   }
   if (currentMenu) {
-    defaultSelectedKeys = getPathArray(menu, currentMenu, 'mpid', 'id')
+    defaultSelectedKeys = getPathArray(menu, currentMenu, 'parent_id', 'id')
   }
 
   return (
