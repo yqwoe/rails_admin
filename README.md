@@ -16,6 +16,9 @@
         /users/:id/edit
         /users/new
 以上约定便于资源权限管理
+
+前端分为 read\create\update三种权限;
+后端分为 read\create\update\destroy 四种权限;
 ```
 
 *Ruby GC 配置
